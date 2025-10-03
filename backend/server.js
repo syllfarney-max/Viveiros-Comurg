@@ -1,42 +1,44 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
+import dotenv from "dotenv";
 import sgMail from "@sendgrid/mail";
 
+dotenv.config();
+
 const app = express();
+app.use(cors());
+app.use(express.json());
+
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(bodyParser.json());
-
-// Configuração do SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// Rota raiz para checar status
+// rota de teste
 app.get("/", (req, res) => {
-  res.send("✅ Backend está rodando!");
+  res.send("API do Viveiro Comurg está rodando 🚀");
 });
 
-// Rota de contato
+// rota de envio de email
 app.post("/api/contact", async (req, res) => {
-  const { name, email, message } = req.body;
   try {
-    await sgMail.send({
-      to: process.env.CONTACT_EMAIL,
-      from: process.env.CONTACT_EMAIL, // remetente único verificado
-      subject: `Nova mensagem de ${name}`,
-      text: `Email: ${email}
+    const { name, email, message } = req.body;
 
-Mensagem:
-${message}`,
-    });
-    res.json({ success: true, message: "Mensagem enviada com sucesso!" });
+    const msg = {
+      to: process.env.CONTACT_EMAIL,
+      from: process.env.CONTACT_EMAIL, // precisa ser remetente verificado no SendGrid
+      subject: `Nova mensagem de ${name}`,
+      text: `Email: ${email}\nMensagem: ${message}`,
+      html: `<strong>Email:</strong> ${email}<br/><p>${message}</p>`
+    };
+
+    await sgMail.send(msg);
+    res.status(200).json({ success: true, message: "Mensagem enviada com sucesso!" });
   } catch (error) {
-    console.error("Erro no envio:", error.response?.body || error);
-    res.status(500).json({ success: false, error: "Erro ao enviar mensagem." });
+    console.error("Erro ao enviar email:", error.response?.body || error.message);
+    res.status(500).json({ success: false, message: "Erro ao enviar mensagem." });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`Backend rodando na porta ${PORT}`);
 });
