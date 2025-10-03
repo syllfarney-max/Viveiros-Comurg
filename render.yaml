@@ -1,4 +1,3 @@
-
 services:
   - type: web
     name: viveiro-comurg-backend
@@ -17,7 +16,8 @@ services:
     env: node
     plan: free
     buildCommand: "cd frontend && npm install && npm run build"
-    startCommand: "cd frontend && npm run preview -- --port 10000 --host 0.0.0.0"
+    startCommand: "cd frontend && npm run preview -- --host 0.0.0.0 --port 10000"
     envVars:
       - key: VITE_API_URL
         value: "https://viveiro-comurg-backend.onrender.com"
+
